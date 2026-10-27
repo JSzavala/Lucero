@@ -1,20 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Lucero.Vistas
 {
     public partial class frmMenuPrincipal : Form
     {
+        private readonly Color _buttonBaseColor = Color.FromArgb(0, 75, 135);
+        private readonly Color _buttonHoverColor = Color.FromArgb(0, 92, 158);
+
         public frmMenuPrincipal()
         {
             InitializeComponent();
+        }
+
+        private void MenuButton_MouseEnter(object sender, EventArgs e)
+        {
+            if (sender is Button button)
+            {
+                button.BackColor = _buttonHoverColor;
+            }
+        }
+
+        private void MenuButton_MouseLeave(object sender, EventArgs e)
+        {
+            if (sender is Button button)
+            {
+                button.BackColor = _buttonBaseColor;
+            }
         }
 
         private void btnUsuarios_Click(object sender, EventArgs e)
@@ -63,6 +76,11 @@ namespace Lucero.Vistas
             frmFacturasOtros factOtros = new frmFacturasOtros();
             factOtros.ShowDialog();
             this.Show();
+        }
+
+        private void btnSalir_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
     }
 }
