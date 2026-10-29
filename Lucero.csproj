@@ -113,6 +113,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Vistas\frmFacturacion.resx">
+      <DependentUpon>frmFacturacion.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Vistas\frmLogin.resx">
       <DependentUpon>frmLogin.cs</DependentUpon>
     </EmbeddedResource>
