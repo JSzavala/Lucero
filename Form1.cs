@@ -15,6 +15,7 @@ namespace Lucero
         public Form1()
         {
             InitializeComponent();
+            
         }
     }
 }
