@@ -55,6 +55,17 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
+    <Compile Include="Controladores\ConsultasController.cs" />
+    <Compile Include="Controladores\FacturacionController.cs" />
+    <Compile Include="Controladores\LoginController.cs" />
+    <Compile Include="Controladores\ReporteGuiaController.cs" />
+    <Compile Include="Modelos\DetalleGuia.cs" />
+    <Compile Include="Modelos\GuiaFactura.cs" />
+    <Compile Include="Modelos\Oficina.cs" />
+    <Compile Include="Modelos\RepositorioDatos.cs" />
+    <Compile Include="Modelos\Sesion.cs" />
+    <Compile Include="Modelos\TipoGuia.cs" />
+    <Compile Include="Modelos\Usuario.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Vistas\frmAnexarFactura.cs">
       <SubType>Form</SubType>
