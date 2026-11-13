@@ -113,7 +113,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-<<<<<<< HEAD
     <EmbeddedResource Include="Vistas\frmConsultas.resx">
       <DependentUpon>frmConsultas.cs</DependentUpon>
     </EmbeddedResource>
@@ -123,11 +122,9 @@
     <EmbeddedResource Include="Vistas\frmFacturasOtros.resx">
       <DependentUpon>frmFacturasOtros.cs</DependentUpon>
     </EmbeddedResource>
-=======
     <EmbeddedResource Include="Vistas\frmFacturacion.resx">
       <DependentUpon>frmFacturacion.cs</DependentUpon>
     </EmbeddedResource>
->>>>>>> 1390d0d9495f840732107c42f585dfc3675b27ea
     <EmbeddedResource Include="Vistas\frmLogin.resx">
       <DependentUpon>frmLogin.cs</DependentUpon>
     </EmbeddedResource>
