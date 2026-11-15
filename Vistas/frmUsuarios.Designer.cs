@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.panelIzquierdo = new System.Windows.Forms.Panel();
             this.lblTitulo = new System.Windows.Forms.Label();
             this.lblDescripcion = new System.Windows.Forms.Label();
@@ -40,7 +39,7 @@
             this.panelIzquierdo.Dock = System.Windows.Forms.DockStyle.Left;
             this.panelIzquierdo.Location = new System.Drawing.Point(0, 0);
             this.panelIzquierdo.Name = "panelIzquierdo";
-            this.panelIzquierdo.Size = new System.Drawing.Size(170, 360);
+            this.panelIzquierdo.Size = new System.Drawing.Size(170, 373);
             this.panelIzquierdo.TabIndex = 0;
             // 
             // lblTitulo
@@ -64,9 +63,13 @@
             this.lblDescripcion.TabIndex = 2;
             this.lblDescripcion.Text = "Administra los usuarios del sistema";
             this.lblDescripcion.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // frmUsuarios
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(620, 360);
+            this.ClientSize = new System.Drawing.Size(682, 373);
             this.Controls.Add(this.lblDescripcion);
             this.Controls.Add(this.lblTitulo);
             this.Controls.Add(this.panelIzquierdo);
@@ -77,6 +80,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Usuarios";
             this.ResumeLayout(false);
+
         }
 
         #endregion
