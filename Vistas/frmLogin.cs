@@ -21,12 +21,16 @@ namespace Lucero.Vistas
 
         private void btnAceptar_Click(object sender, EventArgs e)
         {
-            Usuario usuario = _loginController.Autenticar(txtClave.Text, txtContrasena.Text);
+            string mensaje;
+            Usuario usuario = _loginController.Autenticar(txtClave.Text, txtContrasena.Text, out mensaje);
 
             if (usuario == null)
             {
-                MessageBox.Show("Clave o contraseña incorrectas.", "Iniciar sesión",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    string.IsNullOrWhiteSpace(mensaje) ? "Clave o contraseña incorrectas." : mensaje,
+                    "Iniciar sesión",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 txtContrasena.Clear();
                 txtContrasena.Focus();
                 return;

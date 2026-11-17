@@ -1,6 +1,6 @@
 using System;
-using System.Linq;
 using Lucero.Modelos;
+using Lucero.Servicios;
 
 namespace Lucero.Controladores
 {
@@ -10,29 +10,15 @@ namespace Lucero.Controladores
 
         public string ObtenerSiguienteFolio()
         {
-            int mayor = 0;
+            string mensaje;
+            string folio = ApiClient.ObtenerSiguienteFolio(out mensaje);
 
-            foreach (GuiaFactura guia in RepositorioDatos.Guias)
+            if (!string.IsNullOrWhiteSpace(folio))
             {
-                if (string.IsNullOrWhiteSpace(guia.Folio))
-                {
-                    continue;
-                }
-
-                string numero = guia.Folio.Trim();
-                if (numero.StartsWith("G-", StringComparison.OrdinalIgnoreCase))
-                {
-                    numero = numero.Substring(2);
-                }
-
-                int valor;
-                if (int.TryParse(numero, out valor) && valor > mayor)
-                {
-                    mayor = valor;
-                }
+                return folio;
             }
 
-            return "G-" + (mayor + 1).ToString("D4");
+            return ObtenerSiguienteFolioLocal();
         }
 
         public void CalcularTotales(GuiaFactura guia)
@@ -83,7 +69,17 @@ namespace Lucero.Controladores
 
             CalcularTotales(guia);
 
-            GuiaFactura existente = RepositorioDatos.Guias.FirstOrDefault(g =>
+            string mensajeApi;
+
+            if (!ApiClient.GuardarFactura(guia, out mensajeApi))
+            {
+                mensaje = string.IsNullOrWhiteSpace(mensajeApi)
+                    ? "No se pudo guardar la factura en el servidor."
+                    : mensajeApi;
+                return false;
+            }
+
+            GuiaFactura existente = RepositorioDatos.Guias.Find(g =>
                 string.Equals(g.Folio, guia.Folio, StringComparison.OrdinalIgnoreCase));
 
             if (existente != null)
@@ -92,8 +88,36 @@ namespace Lucero.Controladores
             }
 
             RepositorioDatos.Guias.Add(guia);
-            mensaje = "Guía guardada correctamente.";
+            mensaje = mensajeApi;
             return true;
+        }
+
+        private string ObtenerSiguienteFolioLocal()
+        {
+            int mayor = 0;
+
+            foreach (GuiaFactura guia in RepositorioDatos.Guias)
+            {
+                if (string.IsNullOrWhiteSpace(guia.Folio))
+                {
+                    continue;
+                }
+
+                string numero = guia.Folio.Trim();
+
+                if (numero.StartsWith("G-", StringComparison.OrdinalIgnoreCase))
+                {
+                    numero = numero.Substring(2);
+                }
+
+                int valor;
+                if (int.TryParse(numero, out valor) && valor > mayor)
+                {
+                    mayor = valor;
+                }
+            }
+
+            return "G-" + (mayor + 1).ToString("D4");
         }
     }
 }

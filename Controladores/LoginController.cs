@@ -1,6 +1,5 @@
-using System;
-using System.Linq;
 using Lucero.Modelos;
+using Lucero.Servicios;
 
 namespace Lucero.Controladores
 {
@@ -8,20 +7,31 @@ namespace Lucero.Controladores
     {
         public Usuario Autenticar(string clave, string contrasena)
         {
+            string mensaje;
+            return Autenticar(clave, contrasena, out mensaje);
+        }
+
+        public Usuario Autenticar(string clave, string contrasena, out string mensaje)
+        {
             if (string.IsNullOrWhiteSpace(clave) || string.IsNullOrEmpty(contrasena))
             {
+                mensaje = "Clave o contraseña incorrectas.";
                 return null;
             }
 
-            Usuario usuario = RepositorioDatos.Usuarios.FirstOrDefault(u =>
-                string.Equals(u.Clave, clave.Trim(), StringComparison.OrdinalIgnoreCase) &&
-                u.Contrasena == contrasena);
+            Usuario usuario;
+            string mensajeApi;
 
-            if (usuario != null)
+            if (!ApiClient.IniciarSesion(clave.Trim(), contrasena, out usuario, out mensajeApi))
             {
-                Sesion.UsuarioActual = usuario;
+                mensaje = string.IsNullOrWhiteSpace(mensajeApi)
+                    ? "Clave o contraseña incorrectas."
+                    : mensajeApi;
+                return null;
             }
 
+            Sesion.UsuarioActual = usuario;
+            mensaje = null;
             return usuario;
         }
     }
