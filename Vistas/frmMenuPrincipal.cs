@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using Lucero.Modelos;
 
 namespace Lucero.Vistas
 {
@@ -8,17 +9,44 @@ namespace Lucero.Vistas
     {
         private readonly Color _buttonBaseColor = Color.FromArgb(0, 75, 135);
         private readonly Color _buttonHoverColor = Color.FromArgb(0, 92, 158);
+        private readonly Color _facturacionBaseColor = Color.FromArgb(0, 60, 110);
+        private readonly Color _facturacionHoverColor = Color.FromArgb(0, 80, 145);
 
         public frmMenuPrincipal()
         {
             InitializeComponent();
+            this.KeyDown += frmMenuPrincipal_KeyDown;
+        }
+
+        private void frmMenuPrincipal_Load(object sender, EventArgs e)
+        {
+            if (Sesion.UsuarioActual != null && !string.IsNullOrWhiteSpace(Sesion.UsuarioActual.Nombre))
+            {
+                lblUsuarioNombre.Text = Sesion.UsuarioActual.Nombre;
+            }
+        }
+
+        private void frmMenuPrincipal_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                btnSalir.PerformClick();
+                e.Handled = true;
+            }
         }
 
         private void MenuButton_MouseEnter(object sender, EventArgs e)
         {
             if (sender is Button button)
             {
-                button.BackColor = _buttonHoverColor;
+                if (button == btnFacturacion)
+                {
+                    button.BackColor = _facturacionHoverColor;
+                }
+                else
+                {
+                    button.BackColor = _buttonHoverColor;
+                }
             }
         }
 
@@ -26,7 +54,14 @@ namespace Lucero.Vistas
         {
             if (sender is Button button)
             {
-                button.BackColor = _buttonBaseColor;
+                if (button == btnFacturacion)
+                {
+                    button.BackColor = _facturacionBaseColor;
+                }
+                else
+                {
+                    button.BackColor = _buttonBaseColor;
+                }
             }
         }
 

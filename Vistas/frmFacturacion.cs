@@ -30,9 +30,12 @@ namespace Lucero.Vistas
         public frmFacturacion()
         {
             InitializeComponent();
+            this.DoubleBuffered = true;
             btnGrabar.Click += btnGrabar_Click;
             btnSalir.Click += btnSalir_Click;
             button1.Click += btnEliminarRenglon_Click;
+            btnAgregarRenglon.Click += btnAgregarRenglon_Click;
+            this.KeyDown += frmFacturacion_KeyDown;
             ConfigurarValidaciones();
         }
 
@@ -43,10 +46,8 @@ namespace Lucero.Vistas
                 txtFecha.Text = DateTime.Today.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
             }
 
-            if (string.IsNullOrWhiteSpace(txtFolio.Text))
-            {
-                txtFolio.Text = _facturacionController.ObtenerSiguienteFolio();
-            }
+            // No se precarga el folio aquí para evitar mostrarlo antes de tiempo o colisionar con registros en CDMX
+            txtFolio.Text = string.Empty;
 
             if (Sesion.UsuarioActual != null && string.IsNullOrWhiteSpace(txtUsuario.Text))
             {
@@ -58,14 +59,190 @@ namespace Lucero.Vistas
 
             ConfigurarColumnasDetalle();
             RecalcularTotales();
+            AjustarDisenoResponsive();
+        }
+
+        private void frmFacturacion_Resize(object sender, EventArgs e)
+        {
+            AjustarDisenoResponsive();
+        }
+
+        private void AjustarDisenoResponsive()
+        {
+            if (this.ClientSize.Width <= 0 || this.ClientSize.Height <= 0)
+            {
+                return;
+            }
+
+            this.SuspendLayout();
+
+            int clientW = Math.Max(1160, this.ClientSize.Width);
+            int clientH = Math.Max(670, this.ClientSize.Height);
+
+            int marginX = 14;
+            int marginY = 10;
+            int gapX = 12;
+            int gapY = 8;
+            int rightColWidth = 300;
+
+            // 1. Header (Superior)
+            int headerH = 58;
+            pnlHeader.Location = new Point(marginX, marginY);
+            pnlHeader.Size = new Size(clientW - (marginX * 2), headerH);
+
+            int headerW = pnlHeader.Width;
+            txtUsuario.Location = new Point(headerW - 125, 26);
+            label39.Location = new Point(headerW - 125, 8);
+
+            lblFolioBadge.Location = new Point(headerW - 325, 26);
+            label2.Location = new Point(headerW - 325, 8);
+            txtFolio.Location = new Point(headerW - 325, 26);
+
+            pnlOficina.Location = new Point(headerW - 530, 5);
+
+            // 2. Remitente y Destinatario (Paralelos)
+            int topClientes = marginY + headerH + gapY;
+            int clientesH = 154;
+            int clientesUsableW = clientW - (marginX * 2) - gapX;
+            int mitadW = clientesUsableW / 2;
+
+            gbRemitente.Location = new Point(marginX, topClientes);
+            gbRemitente.Size = new Size(mitadW, clientesH);
+
+            gbDestinatario.Location = new Point(marginX + mitadW + gapX, topClientes);
+            gbDestinatario.Size = new Size(mitadW, clientesH);
+
+            int inputRowW = Math.Max(180, mitadW - 200);
+            txtRemitente.Size = new Size(inputRowW, 23);
+            txtDomicilioremitente.Size = new Size(inputRowW, 23);
+            txtSerecogeraen.Size = new Size(mitadW - 28, 23);
+
+            txtDestinatario.Size = new Size(inputRowW, 23);
+            txtDomicilioDestinarario.Size = new Size(inputRowW, 23);
+            txtSeEntregaraEn.Size = new Size(mitadW - 28, 23);
+
+            // 3. Control Operativo y Acciones (Inferior)
+            int rutaH = 126;
+            int rutaTop = clientH - marginY - rutaH;
+            int leftColW = clientW - (marginX * 2) - gapX - rightColWidth;
+
+            // 4. Área Central (Carga y Totales)
+            int topCarga = topClientes + clientesH + gapY;
+            int cargaH = Math.Max(260, rutaTop - gapY - topCarga);
+
+            gbCarga.Location = new Point(marginX, topCarga);
+            gbCarga.Size = new Size(leftColW, cargaH);
+
+            gbTotales.Location = new Point(marginX + leftColW + gapX, topCarga);
+            gbTotales.Size = new Size(rightColWidth, cargaH);
+
+            // Ajustar elementos dentro de Carga
+            button1.Location = new Point(gbCarga.Width - 14 - button1.Width, 20);
+            pnlEntradaRenglon.Location = new Point(14, 52);
+            pnlEntradaRenglon.Size = new Size(gbCarga.Width - 28, 52);
+
+            btnAgregarRenglon.Location = new Point(pnlEntradaRenglon.Width - btnAgregarRenglon.Width - 6, 14);
+
+            int quickFixedW = 12 + 115 + 4 + 48 + 4 + 105 + 4;
+            int quickRightW = 65 + 4 + 85 + 4 + 95 + 6 + btnAgregarRenglon.Width + 10;
+            int contenidoW = Math.Max(160, pnlEntradaRenglon.Width - quickFixedW - quickRightW);
+            txtContenido.Size = new Size(contenidoW, 23);
+
+            int nextX = txtContenido.Location.X + contenidoW + 6;
+            label15.Location = new Point(nextX, 4);
+            txtPeso.Location = new Point(nextX, 20);
+
+            nextX += txtPeso.Width + 6;
+            label14.Location = new Point(nextX, 4);
+            txtValorUnitarioPorCuota.Location = new Point(nextX, 20);
+
+            nextX += txtValorUnitarioPorCuota.Width + 6;
+            label16.Location = new Point(nextX, 4);
+            pnlRetIVA.Location = new Point(nextX, 18);
+
+            int gridTop = 110;
+            dataGridView1.Location = new Point(14, gridTop);
+            dataGridView1.Size = new Size(gbCarga.Width - 28, Math.Max(130, gbCarga.Height - gridTop - 12));
+
+            // Totales
+            pnlTotalHighlight.Location = new Point(14, gbTotales.Height - pnlTotalHighlight.Height - 12);
+            pnlTotalHighlight.Size = new Size(gbTotales.Width - 28, pnlTotalHighlight.Height);
+            label29.Width = pnlTotalHighlight.Width;
+            txtTotal.Location = new Point(8, 30);
+            txtTotal.Width = pnlTotalHighlight.Width - 16;
+
+            // Ruta y Acciones
+            gbRuta.Location = new Point(marginX, rutaTop);
+            gbRuta.Size = new Size(leftColW, rutaH);
+
+            pnlAcciones.Location = new Point(marginX + leftColW + gapX, rutaTop);
+            pnlAcciones.Size = new Size(rightColWidth, rutaH);
+
+            btnGrabar.Size = new Size(rightColWidth, 64);
+            btnSalir.Location = new Point(0, 72);
+            btnSalir.Size = new Size(rightColWidth, 44);
+
+            int colRutaW = (gbRuta.Width - 28 - (3 * 8)) / 4;
+            txtReembarco.Location = new Point(14, 38);
+            txtReembarco.Size = new Size(colRutaW, 23);
+            label34.Location = new Point(14, 22);
+
+            int x2 = 14 + colRutaW + 8;
+            label37.Location = new Point(x2, 22);
+            txtReembarcarseCon.Location = new Point(x2, 38);
+            txtReembarcarseCon.Size = new Size(colRutaW, 23);
+
+            int x3 = x2 + colRutaW + 8;
+            label35.Location = new Point(x3, 22);
+            txtCondujo.Location = new Point(x3, 38);
+            txtCondujo.Size = new Size(colRutaW, 23);
+
+            int x4 = x3 + colRutaW + 8;
+            label38.Location = new Point(x4, 22);
+            txtConducira.Location = new Point(x4, 38);
+            txtConducira.Size = new Size(colRutaW, 23);
+
+            int obsW = (gbRuta.Width - 28 - 12) / 2;
+            label36.Location = new Point(14, 66);
+            txtObservaciones.Location = new Point(14, 82);
+            txtObservaciones.Size = new Size(obsW, 36);
+
+            int obs2X = 14 + obsW + 12;
+            label33.Location = new Point(obs2X, 66);
+            txtObservacionesDDF.Location = new Point(obs2X, 82);
+            txtObservacionesDDF.Size = new Size(obsW, 36);
+
+            this.ResumeLayout();
+        }
+
+        private void frmFacturacion_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F5)
+            {
+                btnGrabar.PerformClick();
+                e.Handled = true;
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                btnSalir.PerformClick();
+                e.Handled = true;
+            }
         }
 
         private void btnGrabar_Click(object sender, EventArgs e)
         {
             dataGridView1.EndEdit();
 
+            // Asignar el siguiente folio real justo en este instante para evitar colisiones con CDMX
+            if (string.IsNullOrWhiteSpace(txtFolio.Text))
+            {
+                txtFolio.Text = _facturacionController.ObtenerSiguienteFolio();
+            }
+
             if (!ValidarFormulario())
             {
+                // Limpiar el folio para no dejarlo congelado si la validación falla
+                txtFolio.Text = string.Empty;
                 return;
             }
 
@@ -77,13 +254,55 @@ namespace Lucero.Vistas
 
             if (!_facturacionController.Guardar(guia, out mensaje))
             {
+                // Limpiar el folio para reintentar con uno fresco al corregir
+                txtFolio.Text = string.Empty;
                 MessageBox.Show(mensaje, "Facturación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            MessageBox.Show(mensaje, "Facturación", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            txtFolio.Text = _facturacionController.ObtenerSiguienteFolio();
+            MessageBox.Show(
+                $"{mensaje}\n\nFolio asignado: {guia.Folio}",
+                "Facturación",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+
+            // Preparar para la siguiente captura sin mostrar folio previo
+            txtFolio.Text = string.Empty;
+            _detalles.Clear();
+            LimpiarCamposDespuesDeGuardar();
             RecalcularTotales();
+        }
+
+        private void LimpiarCamposDespuesDeGuardar()
+        {
+            txtOrigen.Clear();
+            txtRemitente.Clear();
+            txtRFC.Clear();
+            txtDomicilioremitente.Clear();
+            txtSerecogeraen.Clear();
+
+            txtDestino.Clear();
+            txtDestinatario.Clear();
+            txtRFCDestinatario.Clear();
+            txtDomicilioDestinarario.Clear();
+            txtSeEntregaraEn.Clear();
+
+            txtValorDeclarado.Text = "0.00";
+            txtFlete.Text = "0.00";
+            txtManiobras.Text = "0.00";
+            txtCobroPorSeguro.Text = "0.00";
+            txtALYT.Text = "0.00";
+            txtOtros.Text = "0.00";
+            txtRetenerIVA.Text = "0.00";
+
+            txtReembarco.Clear();
+            txtReembarcarseCon.Clear();
+            txtCondujo.Clear();
+            txtConducira.Clear();
+            txtObservaciones.Clear();
+            txtObservacionesDDF.Clear();
+
+            txtOrigen.Focus();
         }
 
         private void btnSalir_Click(object sender, EventArgs e)
@@ -103,6 +322,54 @@ namespace Lucero.Vistas
             {
                 _detalles.RemoveAt(indice);
             }
+        }
+
+        private void btnAgregarRenglon_Click(object sender, EventArgs e)
+        {
+            decimal peso = ParseDecimal(txtPeso.Text);
+            decimal cuota = ParseDecimal(txtValorUnitarioPorCuota.Text);
+            string contenido = txtContenido.Text.Trim();
+            string numero = txtNum.Text.Trim();
+            string embalaje = txtEmbalaje.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(contenido) && peso <= 0m && cuota <= 0m)
+            {
+                MessageBox.Show(
+                    "Ingresa al menos el contenido, peso o cuota del bulto.",
+                    "Detalle de Carga",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                txtContenido.Focus();
+                return;
+            }
+
+            TipoGuia tipo = rbLibre.Checked ? TipoGuia.Libre : TipoGuia.DDF;
+
+            _detalles.Add(new DetalleGuia
+            {
+                Tipo = tipo,
+                Numero = numero,
+                Embalaje = embalaje,
+                Contenido = contenido,
+                Peso = peso,
+                ValorUnitarioPorCuota = cuota,
+                RetieneIva = rbSiIVA.Checked
+            });
+
+            // Sugerir flete automático si está en 0
+            decimal totalRenglones = _detalles.Sum(d => d.Importe);
+            if (ParseDecimal(txtFlete.Text) == 0m && totalRenglones > 0m)
+            {
+                txtFlete.Text = totalRenglones.ToString("0.00", CultureInfo.InvariantCulture);
+            }
+
+            txtNum.Clear();
+            txtEmbalaje.Clear();
+            txtContenido.Clear();
+            txtPeso.Clear();
+            txtValorUnitarioPorCuota.Clear();
+            rbNoiva.Checked = true;
+            txtNum.Focus();
         }
 
         private GuiaFactura LeerGuia(DateTime fecha)
@@ -151,12 +418,10 @@ namespace Lucero.Vistas
             {
                 caja.ReadOnly = true;
                 caja.TabStop = false;
-                caja.BackColor = SystemColors.Control;
             }
 
             txtUsuario.ReadOnly = true;
             txtUsuario.TabStop = false;
-            txtUsuario.BackColor = SystemColors.Control;
 
             TextBox[] numericos =
             {
@@ -212,27 +477,58 @@ namespace Lucero.Vistas
 
                 switch (columna.DataPropertyName)
                 {
+                    case nameof(DetalleGuia.Tipo):
+                        columna.HeaderText = "Tipo";
+                        columna.FillWeight = 50;
+                        break;
                     case nameof(DetalleGuia.Numero):
+                        columna.HeaderText = "Cant.";
+                        columna.FillWeight = 45;
                         if (texto != null)
                         {
                             texto.MaxInputLength = 50;
                         }
                         break;
-                    case nameof(DetalleGuia.Contenido):
-                        if (texto != null)
-                        {
-                            texto.MaxInputLength = 150;
-                        }
-                        break;
                     case nameof(DetalleGuia.Embalaje):
+                        columna.HeaderText = "Embalaje";
+                        columna.FillWeight = 75;
                         if (texto != null)
                         {
                             texto.MaxInputLength = 100;
                         }
                         break;
+                    case nameof(DetalleGuia.Contenido):
+                        columna.HeaderText = "Contenido";
+                        columna.FillWeight = 140;
+                        if (texto != null)
+                        {
+                            texto.MaxInputLength = 150;
+                        }
+                        break;
+                    case nameof(DetalleGuia.Peso):
+                        columna.HeaderText = "Peso (Kg)";
+                        columna.FillWeight = 60;
+                        columna.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                        columna.DefaultCellStyle.Format = "N2";
+                        break;
+                    case nameof(DetalleGuia.ValorUnitarioPorCuota):
+                        columna.HeaderText = "Cuota Unit. ($)";
+                        columna.FillWeight = 70;
+                        columna.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                        columna.DefaultCellStyle.Format = "N2";
+                        break;
+                    case nameof(DetalleGuia.RetieneIva):
+                        columna.HeaderText = "Ret. IVA";
+                        columna.FillWeight = 45;
+                        break;
                     case nameof(DetalleGuia.Importe):
+                        columna.HeaderText = "Importe ($)";
+                        columna.FillWeight = 70;
                         columna.ReadOnly = true;
-                        columna.DefaultCellStyle.BackColor = SystemColors.Control;
+                        columna.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                        columna.DefaultCellStyle.Format = "N2";
+                        columna.DefaultCellStyle.BackColor = Color.FromArgb(241, 245, 249);
+                        columna.DefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
                         break;
                 }
             }
@@ -401,7 +697,7 @@ namespace Lucero.Vistas
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
 
-            if (control != null)
+            if (control != null && control.Visible)
             {
                 control.Focus();
             }
@@ -581,49 +877,15 @@ namespace Lucero.Vistas
                 out fecha);
         }
 
-        private void label6_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox4_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label7_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label8_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox3_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void radioButton3_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label29_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void rbDDF_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void radioButton7_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
+        // Métodos de evento para compatibilidad con firmas previas
+        private void label6_Click(object sender, EventArgs e) { }
+        private void textBox4_TextChanged(object sender, EventArgs e) { }
+        private void label7_Click(object sender, EventArgs e) { }
+        private void label8_Click(object sender, EventArgs e) { }
+        private void textBox3_TextChanged(object sender, EventArgs e) { }
+        private void radioButton3_CheckedChanged(object sender, EventArgs e) { }
+        private void label29_Click(object sender, EventArgs e) { }
+        private void rbDDF_CheckedChanged(object sender, EventArgs e) { }
+        private void radioButton7_CheckedChanged(object sender, EventArgs e) { }
     }
 }
